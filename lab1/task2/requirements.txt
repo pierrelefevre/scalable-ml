@@ -1,3 +1,6 @@
 hopsworks
 seaborn
 matplotlib
+scikit-learn
+matplotlib
+numpy
