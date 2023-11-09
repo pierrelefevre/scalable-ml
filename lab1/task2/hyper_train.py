@@ -15,7 +15,7 @@ import time
 
 def train(thread_id, X_train, X_validation, X_test, y_train, y_validation, y_test):
 
-    log_file = open(f"hyper_train_{thread_id}.log", "w")
+    log_file = open(f"log/hyper_train_{thread_id}.log", "w")
 
     # Create a list of models to evaluate
     models = []
