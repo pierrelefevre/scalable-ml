@@ -95,9 +95,9 @@ def get_randomized_permutation(X_train, X_validation):
 def main():
     project = hopsworks.login(project="id2223_pierrelf_emilk2")
     fs = project.get_feature_store()
-    fg = fs.get_feature_group(name="winequality_balanced", version=1)
+    fg = fs.get_feature_group(name="winequality_balanced_typed", version=1)
     query = fg.select_all()
-    feature_view = fs.get_or_create_feature_view(name="winequality_balanced",
+    feature_view = fs.get_or_create_feature_view(name="winequality_balanced_typed",
                                                  version=1,
                                                  description="Read from winequality dataset",
                                                  labels=["quality"],
