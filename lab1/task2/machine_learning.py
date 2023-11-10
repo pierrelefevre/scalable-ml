@@ -1,9 +1,9 @@
 import pandas as pd
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import mean_squared_error
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.preprocessing import PolynomialFeatures
-from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, RandomForestRegressor, GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier, RandomForestRegressor, GradientBoostingRegressor, ExtraTreesClassifier
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsClassifier
@@ -42,12 +42,14 @@ def train(thread_id, X_train, X_validation, X_test, y_train, y_validation, y_tes
         ("SVR     ", SVR(), {'C': [1, 10], 'gamma': ['scale', 'auto']}),
         ("DTreeReg", DecisionTreeRegressor(), {'max_depth': [None, 10, 20], 'min_samples_split': [2, 10]}),
         ("GBoostRe", GradientBoostingRegressor(), {'n_estimators': [100, 200], 'learning_rate': [0.01, 0.1], 'max_depth': [3, 5]}),
+        ("LogRegre", LogisticRegression(), {'C': [1, 10], 'penalty': ['l1', 'l2']}),
 
         # Classifiers
         ("KNN     ", KNeighborsClassifier(), {'n_neighbors': list(range(2, 50)), 'weights': ['uniform', 'distance']}),
         ("RFClassi", RandomForestClassifier(), {'n_estimators': [100, 200], 'max_depth': [None, 10, 20]}),
         ("GBoostCl", GradientBoostingClassifier(), {'n_estimators': [100, 200], 'learning_rate': [0.01, 0.1]}),
         ("DTreeCla", DecisionTreeClassifier(), {'max_depth': [None, 10, 20]}),
+        ("ExtraTre", ExtraTreesClassifier(), {'n_estimators': [100, 200], 'max_depth': [None, 10, 20]}),
     ]
 
     max_name = ""
@@ -93,9 +95,9 @@ def get_randomized_permutation(X_train, X_validation):
 def main():
     project = hopsworks.login(project="id2223_pierrelf_emilk2")
     fs = project.get_feature_store()
-    fg = fs.get_feature_group(name="winequality", version=1)
+    fg = fs.get_feature_group(name="winequality_balanced", version=1)
     query = fg.select_all()
-    feature_view = fs.get_or_create_feature_view(name="winequality",
+    feature_view = fs.get_or_create_feature_view(name="winequality_balanced",
                                                  version=1,
                                                  description="Read from winequality dataset",
                                                  labels=["quality"],
@@ -109,6 +111,7 @@ def main():
     for i in range(int(num_threads)):
         X_train, X_validation, X_test, y_train, y_validation, y_test = feature_view.train_validation_test_split(
             0.2, 0.2)
+        
         p = Process(target=train, args=(i, X_train, X_validation,
                     X_test, y_train, y_validation, y_test,))
         p.start()
