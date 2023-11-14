@@ -24,7 +24,7 @@ jobs:
         pip install -r ./lab1/task2/requirements.txt
 
 
-    - name: Run Iris Feature Pipeline
+    - name: Run Wine Feature Pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
       run: python ./lab1/task2/daily.py
