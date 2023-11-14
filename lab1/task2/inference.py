@@ -23,8 +23,9 @@ def save_wine_image(quality, path):
     img = Image.open(requests.get(url, stream=True).raw)            
     img.save(path)
 
-def upload_prediction(pred_fg, predicted_quality, actual_quality):
+def upload_prediction(dataset_api, pred_fg, predicted_quality, actual_quality):
     
+    # write prediction to feature store
     now = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
     data = {
         'prediction': [predicted_quality],
@@ -40,10 +41,16 @@ def upload_prediction(pred_fg, predicted_quality, actual_quality):
     # insert afterwards to ensure that we don't insert pred_df twice
     pred_fg.insert(pred_df, write_options={"wait_for_job" : False})
 
-
+    # write image to hopsworks for visualization
     df_recent = history_df.tail(4)
-    dfi.export(df_recent, './df_recent.png', table_conversion = 'matplotlib')
-    dataset_api.upload("./df_recent.png", "Resources/images", overwrite=True)
+    dfi.export(df_recent, './img/df_recent.png', table_conversion = 'matplotlib')
+    dataset_api.upload("./img/df_recent.png", "Resources/images", overwrite=True)
+    
+    save_wine_image(predicted_quality, "./img/latest_wine.png")
+    save_wine_image(actual_quality, "./img/actual_wine.png")
+
+    dataset_api.upload("./img/latest_wine.png", "Resources/images", overwrite=True)
+    dataset_api.upload("./img/actual_wine.png", "Resources/images", overwrite=True)
 
 def main():
     project = hopsworks.login()
@@ -70,14 +77,7 @@ def main():
     actual_quality = int(round(fg.read().iloc[-1]["quality"]))
     print("Actual quality: {}".format(actual_quality))
 
-    # write image to hopsworks
-    save_wine_image(predicted_quality, "./img/latest_wine.png")
-    save_wine_image(actual_quality, "./img/actual_wine.png")
-
-    dataset_api.upload("./img/latest_wine.png", "Resources/images", overwrite=True)
-    dataset_api.upload("./img/actual_wine.png", "Resources/images", overwrite=True)
-
-
+    upload_prediction(dataset_api, fg_pred, predicted_quality, actual_quality)
     
     
 
