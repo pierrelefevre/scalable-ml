@@ -22,18 +22,23 @@ The proposed solution is a machine learning system in four main parts.
     - The flower is saved to Hopsworks
 
 4. Metrics generator (iris-batch-inference-pipeline.py)
-    - 
+    - Predicts the class of the daily flower using the model
+    - Generates a confusion matrix
 
 ## Frontend
 The user accessible part of this project is made possible through Gradio applications hosted on Huggingface Spaces.
 
 1. [Iris](https://huggingface.co/spaces/pierrelf/iris)
-    - 
+    - Given input parameters, it calls the model and returns the predicted class
+    - The model is hosted on Hopsworks
+
 2. [Iris Monitor](https://huggingface.co/spaces/pierrelf/iris-monitor)
-    -
+    - Shows the daily generated flower and its predicted class
+    - Shows the metrics of the model
 
 ## Results
-sifushdfiu
+The resulting frontend applications are quite cool to look at, and we think it has been a great learning experience.
+The utility of the model is very limited, but it is a good example of how to use the tools.
 
 ## Discussion
 While this project was relatively straightforward given most of the code was provided, here are some issues that we encountered.
