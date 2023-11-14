@@ -1,0 +1,30 @@
+name: Daily Iris Feature Pipeline
+
+on:
+  schedule:
+    # 00:00 UTC every day
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r ./lab1/task1/requirements.txt
+
+
+    - name: Run Iris Feature Pipeline
+      env:
+        HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+      run: python ./lab1/task1/iris-feature-pipeline-daily.py

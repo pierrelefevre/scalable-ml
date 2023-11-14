@@ -1,5 +1,5 @@
 # ID2223 Scalable ML - Lab 1, Task 2 - Wine quality
-![Wine tasting group](assets/image.png)
+![Wine tasting group](../assets/task2.png)
 by Emil Karlsson, Pierre Le Fevre
 
 ## Task
@@ -7,16 +7,114 @@ Predict wine quality of wines from Portugal using the provided dataset.
 Dataset is unevenly distributed, there are very few high quality wines.
 
 Could be classification or regression problem.
+## Proposed solution
+### Backend 
+The proposed solution is a machine learning system in five main parts. 
+1. Data preprocessing (initialize.ipynb)
+    - The raw dataset is imported
+    - Data is analysed to visualize the data and grok what we will be classifying
+    - Data is cleaned and balanced
+    - Dataset it uploaded to Hopsworks
+
+2. Model finder (model_finder.py)
+    - Dataset is fetched
+    - A number of models are trained
+    - Highest scoring model is parsed
+
+3. Model training (train.ipynb)
+    - Using the best model from the model finder, we train it on the full dataset
+    - The model is saved to Hopsworks
+
+4. Daily wine generation (daily.py)
+    - Generate a random wine by 
+        - Randomizing the values
+        - Finding the nearest neighbor
+        - Skewing the values a bit
+        - Predicting the quality
+    - The wine is saved to Hopsworks
+
+5. Metrics generator (inference.py)
+    - ???
+
+### Frontend
+The user accessible part of this project is made possible through Gradio applications hosted on Huggingface Spaces.
+
+1. [Wine](https://huggingface.co/spaces/pierrelf/wine)
+    - ???
+2. [Wine Monitor](https://huggingface.co/spaces/pierrelf/wine-monitor)
+    - ???
 
 
-## Tips from Jim
-Might want to use xgboost?
 
-## Some notes from https://www.youtube.com/watch?v=W25TEa93T_I
+## Results
+???
+
+## Discussion
+### Troubles with Hopworks
+Similarly to the troubles encountered in task 1, the spotty availability of Hopsworks has not exactly been helpful in our workflow. 
+We also noticed that the train_test_validation_split function saves the split dataset on Hopsworks, but has a limit of 100 saved datasets. This meant we had to delete the old datasets to be able to run the notebook again, something which could be avoided by simply saving the split dataset locally.
+
+## Conclusion
+???
+
+## Notes
+### Tips from Jim
+- Might want to use xgboost?
+- Generate wines by randomizing, find nearest neighbor, skew it a bit and then predict
+
+### Some notes from https://www.youtube.com/watch?v=W25TEa93T_I
 Lower MSE: Go for regression
 Accuracy: Go for classification
 
-## Data
+## Model finder run outputs
+### Run 4 (Balanced data, added back types)
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.942 mse: 0.250 [['sulphates', 'chlorides', 'fixed_acidity', 'ph', 'alcohol', 'volatile_acidity', 'total_sulfur_dioxide', 'residual_sugar', 'citric_acid']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.940 mse: 0.256 [['alcohol', 'residual_sugar', 'chlorides', 'fixed_acidity', 'sulphates', 'ph', 'volatile_acidity', 'citric_acid', 'total_sulfur_dioxide']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.939 mse: 0.266 [['alcohol', 'chlorides', 'ph', 'residual_sugar', 'sulphates', 'citric_acid', 'fixed_acidity', 'total_sulfur_dioxide', 'volatile_acidity']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.938 mse: 0.269 [['sulphates', 'fixed_acidity', 'total_sulfur_dioxide', 'citric_acid', 'ph', 'alcohol', 'volatile_acidity', 'residual_sugar', 'chlorides']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.938 mse: 0.269 [['ph', 'citric_acid', 'volatile_acidity', 'chlorides', 'fixed_acidity', 'total_sulfur_dioxide', 'sulphates', 'alcohol', 'residual_sugar']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.938 mse: 0.269 [['citric_acid', 'volatile_acidity', 'residual_sugar', 'sulphates', 'chlorides', 'alcohol', 'fixed_acidity', 'total_sulfur_dioxide', 'ph']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.937 mse: 0.273 [['residual_sugar', 'ph', 'volatile_acidity', 'chlorides', 'sulphates', 'total_sulfur_dioxide', 'citric_acid', 'type', 'alcohol']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.271 [['total_sulfur_dioxide', 'alcohol', 'volatile_acidity', 'residual_sugar', 'type', 'sulphates', 'citric_acid', 'ph', 'fixed_acidity']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.278 [['sulphates', 'ph', 'residual_sugar', 'chlorides', 'total_sulfur_dioxide', 'alcohol', 'volatile_acidity', 'fixed_acidity', 'citric_acid']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.272 [['alcohol', 'residual_sugar', 'ph', 'sulphates', 'chlorides', 'total_sulfur_dioxide', 'volatile_acidity', 'fixed_acidity', 'citric_acid']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.270 [['type', 'citric_acid', 'sulphates', 'residual_sugar', 'fixed_acidity', 'ph', 'total_sulfur_dioxide', 'volatile_acidity', 'alcohol']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.275 [['ph', 'citric_acid', 'residual_sugar', 'fixed_acidity', 'volatile_acidity', 'alcohol', 'total_sulfur_dioxide', 'chlorides', 'sulphates']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.273 [['volatile_acidity', 'residual_sugar', 'alcohol', 'sulphates', 'total_sulfur_dioxide', 'fixed_acidity', 'ph', 'chlorides', 'citric_acid']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.276 [['volatile_acidity', 'citric_acid', 'alcohol', 'sulphates', 'ph', 'chlorides', 'total_sulfur_dioxide', 'residual_sugar']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.275 [['residual_sugar', 'volatile_acidity', 'chlorides', 'sulphates', 'alcohol', 'ph', 'citric_acid', 'type', 'total_sulfur_dioxide']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.271 [['citric_acid', 'ph', 'volatile_acidity', 'residual_sugar', 'fixed_acidity', 'alcohol', 'total_sulfur_dioxide', 'sulphates', 'chlorides']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.272 [['ph', 'citric_acid', 'alcohol', 'sulphates', 'chlorides', 'fixed_acidity', 'volatile_acidity', 'total_sulfur_dioxide', 'residual_sugar']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.936 mse: 0.272 [['residual_sugar', 'volatile_acidity', 'fixed_acidity', 'total_sulfur_dioxide', 'alcohol', 'sulphates', 'ph', 'chlorides', 'type']]
+RFRegres ({'max_depth': 20, 'n_estimators': 200}) score: 0.935 mse: 0.277 [['total_sulfur_dioxide', 'sulphates', 'type', 'residual_sugar', 'fixed_acidity', 'citric_acid', 'volatile_acidity', 'alcohol', 'ph']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.935 mse: 0.279 [['ph', 'total_sulfur_dioxide', 'citric_acid', 'residual_sugar', 'chlorides', 'sulphates', 'alcohol', 'volatile_acidity']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.935 mse: 0.275 [['citric_acid', 'volatile_acidity', 'sulphates', 'residual_sugar', 'alcohol', 'fixed_acidity', 'type', 'ph', 'total_sulfur_dioxide']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.935 mse: 0.276 [['alcohol', 'citric_acid', 'fixed_acidity', 'volatile_acidity', 'ph', 'total_sulfur_dioxide', 'chlorides', 'residual_sugar', 'sulphates']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.935 mse: 0.277 [['citric_acid', 'residual_sugar', 'volatile_acidity', 'sulphates', 'ph', 'type', 'chlorides', 'alcohol', 'total_sulfur_dioxide']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.935 mse: 0.274 [['residual_sugar', 'chlorides', 'citric_acid', 'total_sulfur_dioxide', 'ph', 'volatile_acidity', 'alcohol', 'sulphates', 'fixed_acidity']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.935 mse: 0.279 [['volatile_acidity', 'citric_acid', 'residual_sugar', 'alcohol', 'ph', 'chlorides', 'type', 'sulphates', 'total_sulfur_dioxide']]
+RFRegres ({'max_depth': 20, 'n_estimators': 200}) score: 0.934 mse: 0.282 [['citric_acid', 'chlorides', 'total_sulfur_dioxide', 'residual_sugar', 'sulphates', 'volatile_acidity', 'fixed_acidity', 'alcohol', 'ph']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.934 mse: 0.284 [['total_sulfur_dioxide', 'citric_acid', 'residual_sugar', 'volatile_acidity', 'ph', 'sulphates', 'alcohol', 'chlorides']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.934 mse: 0.278 [['alcohol', 'ph', 'chlorides', 'residual_sugar', 'citric_acid', 'fixed_acidity', 'total_sulfur_dioxide', 'sulphates', 'volatile_acidity']]
+RFRegres ({'max_depth': 20, 'n_estimators': 200}) score: 0.934 mse: 0.281 [['sulphates', 'alcohol', 'fixed_acidity', 'residual_sugar', 'citric_acid', 'volatile_acidity', 'total_sulfur_dioxide', 'chlorides', 'ph']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.933 mse: 0.285 [['citric_acid', 'total_sulfur_dioxide', 'type', 'sulphates', 'fixed_acidity', 'residual_sugar', 'alcohol', 'volatile_acidity', 'ph']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.933 mse: 0.288 [['chlorides', 'citric_acid', 'total_sulfur_dioxide', 'alcohol', 'ph', 'fixed_acidity', 'residual_sugar', 'sulphates', 'volatile_acidity']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.933 mse: 0.279 [['volatile_acidity', 'alcohol', 'type', 'fixed_acidity', 'ph', 'citric_acid', 'total_sulfur_dioxide', 'sulphates', 'residual_sugar']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.933 mse: 0.282 [['volatile_acidity', 'fixed_acidity', 'citric_acid', 'alcohol', 'ph', 'residual_sugar', 'sulphates', 'chlorides', 'total_sulfur_dioxide']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.933 mse: 0.290 [['chlorides', 'total_sulfur_dioxide', 'alcohol', 'residual_sugar', 'fixed_acidity', 'volatile_acidity', 'citric_acid', 'sulphates', 'ph']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.932 mse: 0.289 [['sulphates', 'chlorides', 'ph', 'residual_sugar', 'type', 'alcohol', 'citric_acid', 'total_sulfur_dioxide', 'volatile_acidity']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.932 mse: 0.291 [['total_sulfur_dioxide', 'alcohol', 'fixed_acidity', 'type', 'ph', 'volatile_acidity', 'citric_acid', 'sulphates', 'residual_sugar']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.932 mse: 0.284 [['residual_sugar', 'sulphates', 'citric_acid', 'chlorides', 'volatile_acidity', 'ph', 'alcohol', 'type', 'total_sulfur_dioxide']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.932 mse: 0.290 [['volatile_acidity', 'ph', 'residual_sugar', 'alcohol', 'chlorides', 'total_sulfur_dioxide', 'type', 'citric_acid', 'sulphates']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.932 mse: 0.285 [['alcohol', 'volatile_acidity', 'sulphates', 'fixed_acidity', 'chlorides', 'total_sulfur_dioxide', 'citric_acid', 'residual_sugar', 'ph']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.931 mse: 0.291 [['total_sulfur_dioxide', 'residual_sugar', 'alcohol', 'sulphates', 'fixed_acidity', 'volatile_acidity', 'ph', 'type', 'citric_acid']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.931 mse: 0.295 [['chlorides', 'citric_acid', 'ph', 'sulphates', 'residual_sugar', 'volatile_acidity', 'total_sulfur_dioxide', 'alcohol', 'fixed_acidity']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.931 mse: 0.289 [['alcohol', 'citric_acid', 'volatile_acidity', 'fixed_acidity', 'ph', 'sulphates', 'total_sulfur_dioxide', 'chlorides', 'residual_sugar']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.931 mse: 0.288 [['fixed_acidity', 'sulphates', 'volatile_acidity', 'alcohol', 'ph', 'citric_acid', 'chlorides', 'total_sulfur_dioxide', 'residual_sugar']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.930 mse: 0.301 [['residual_sugar', 'type', 'chlorides', 'alcohol', 'volatile_acidity', 'sulphates', 'total_sulfur_dioxide', 'citric_acid', 'ph']]
+RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.930 mse: 0.300 [['residual_sugar', 'type', 'total_sulfur_dioxide', 'alcohol', 'sulphates', 'volatile_acidity', 'fixed_acidity', 'citric_acid', 'ph']]
+
+
 ### Run 3 (Balanced data, dropped some columns)
 RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.939 mse: 0.261 [['volatile_acidity', 'total_sulfur_dioxide', 'sulphates', 'residual_sugar', 'chlorides', 'alcohol', 'citric_acid', 'ph']]
 RFRegres ({'max_depth': None, 'n_estimators': 200}) score: 0.938 mse: 0.270 [['alcohol', 'ph', 'volatile_acidity', 'fixed_acidity', 'total_sulfur_dioxide', 'chlorides', 'sulphates', 'citric_acid']]
