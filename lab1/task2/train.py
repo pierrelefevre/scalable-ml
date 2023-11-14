@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from hsml.schema import Schema
-from hsml.model import ModelSchema
+from hsml.model_schema import ModelSchema
 
 import seaborn as sns
 import pandas as pd
@@ -38,11 +38,8 @@ def get_model_schema(X_train, y_train):
 
     return model_schema
 
-def save_model(project, model, model_schema, metrics, results):
-    fig = cf_heatmap(results)
-
-    # We will now upload our model to the Hopsworks Model Registry. First get an object for the model registry.
-    mr = project.get_model_registry()
+def save_model(project, model, model_schema, score):
+    # fig = cf_heatmap(results)
 
     # The contents of the 'iris_model' directory will be saved to the model registry. Create the dir, first.
     model_dir="wine_model"
@@ -51,13 +48,13 @@ def save_model(project, model, model_schema, metrics, results):
 
     # Save both our model and the confusion matrix to 'model_dir', whose contents will be uploaded to the model registry
     joblib.dump(model, model_dir + "/wine_model.pkl")
-    fig.savefig(model_dir + "/confusion_matrix.png")
+    # fig.savefig(model_dir + "/confusion_matrix.png")
     
 
     # Create an entry in the model registry that includes the model's name, desc, metrics
-    iris_model = mr.python.create_model(
+    iris_model = project.get_model_registry().python.create_model(
         name="wine_model", 
-        metrics={"accuracy" : metrics['accuracy']},
+        metrics={"score" : score},
         model_schema=model_schema,
         description="Wine quality prediction model",
     )
@@ -67,15 +64,15 @@ def save_model(project, model, model_schema, metrics, results):
 
 def train(X_train, X_test, y_train, y_test):
     model = get_model()
-    model.fit(X_train, y_train)
+    model.fit(X_train, y_train.values.ravel())
 
     # Evaluate model performance using the features from the test set (X_test)
     y_pred = model.predict(X_test)
 
-    metrics = classification_report(y_test, y_pred, output_dict=True)
-    results = confusion_matrix(y_test, y_pred)
+    # metrics = classification_report(y_test, y_pred, output_dict=True)
+    # results = confusion_matrix(y_test, y_pred)
 
-    return model, metrics, results
+    return model
 
 def main():
     project = hopsworks.login(project="id2223_pierrelf_emilk2")
@@ -91,7 +88,7 @@ def main():
     X_train, X_test, y_train, y_test = feature_view.train_test_split(0.2)
     
 
-    model, metrics, results = train(X_train, X_test, y_train, y_test)
+    model = train(X_train, X_test, y_train, y_test)
 
 
     score = model.score(X_test, y_test)
@@ -99,7 +96,7 @@ def main():
 
 
     print("Saving model...")
-    save_model(project, model, get_model_schema(X_train, y_train), metrics, results)
+    save_model(project, model, get_model_schema(X_train, y_train), score)
 
 
 if __name__ == "__main__":
