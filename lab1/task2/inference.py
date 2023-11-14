@@ -7,7 +7,7 @@ import hopsworks
 import joblib
 import shutil
 import requests
-import datetime
+from datetime import datetime
 
 def load_model(project):
     mr = project.get_model_registry()
@@ -43,25 +43,29 @@ def upload_prediction(dataset_api, pred_fg, predicted_quality, actual_quality):
 
     # write image to hopsworks for visualization
     df_recent = history_df.tail(4)
-    dfi.export(df_recent, './img/df_recent.png', table_conversion = 'matplotlib')
-    dataset_api.upload("./img/df_recent.png", "Resources/images", overwrite=True)
+    dfi.export(df_recent, './img/df_recent_wine.png', table_conversion = 'matplotlib')
+    dataset_api.upload("./img/df_recent_wine.png", "Resources/images", overwrite=True)
     
     save_wine_image(predicted_quality, "./img/latest_wine.png")
-    save_wine_image(actual_quality, "./img/actual_wine.png")
-
     dataset_api.upload("./img/latest_wine.png", "Resources/images", overwrite=True)
+
+    save_wine_image(actual_quality, "./img/actual_wine.png")
     dataset_api.upload("./img/actual_wine.png", "Resources/images", overwrite=True)
 
 def main():
-    project = hopsworks.login()
+    name = "winequality_typed_balanced"
+
+    project = hopsworks.login(project="id2223_pierrelf_emilk2")
     fs = project.get_feature_store()
-    fg = fs.get_feature_group(name="winequality_typed_balanced")
-    fv = fs.get_feature_view(name="winequality_typed_balanced")
-    fg_pred = fs.get_or_create_feature_group(name="winequality_typed_balanced_predictions",
-                                                version=1,
-                                                primary_key=["datetime"],
-                                                description="Predictions for winequality_typed_balanced",
-                                                )
+    fg = fs.get_feature_group(name=name)
+    fv = fs.get_feature_view(name=name)
+    pred_fg = fs.get_or_create_feature_group(
+        name=f"{name}_predictions",
+        version=1,
+        primary_key=["datetime"],
+        description="Wine quality predictions",
+    )
+
     dataset_api = project.get_dataset_api()
 
     print("Reading latest wine quality...")
@@ -77,7 +81,7 @@ def main():
     actual_quality = int(round(fg.read().iloc[-1]["quality"]))
     print("Actual quality: {}".format(actual_quality))
 
-    upload_prediction(dataset_api, fg_pred, predicted_quality, actual_quality)
+    upload_prediction(dataset_api, pred_fg, predicted_quality, actual_quality)
     
     
 
