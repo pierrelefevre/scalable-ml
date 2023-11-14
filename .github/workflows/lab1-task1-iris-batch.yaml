@@ -1,9 +1,9 @@
-name: Daily Iris Feature Pipeline
+name: Lab 1, Task 1, Iris Batch Pipeline
 
 on:
   schedule:
-    # 00:00 UTC every day
-    - cron: '0 0 * * *'
+    # 01:00 UTC every day
+    - cron: '1 0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
         pip install -r ./lab1/task1/requirements.txt
 
 
-    - name: Run Iris Feature Pipeline
+    - name: Run Iris Batch Inference Pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
-      run: python ./lab1/task1/iris-feature-pipeline-daily.py
+      run: python ./lab1/task1/iris-batch-inference-pipeline.py
