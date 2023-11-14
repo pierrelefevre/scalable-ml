@@ -1,4 +1,4 @@
-name: Lab 1, Task 2, Wine Batch Pipeline
+name: Lab 1, Task 2, Wine Inference Pipeline
 
 on:
   schedule:
