@@ -3,7 +3,7 @@ name: Lab 1, Task 2, Wine Inference Pipeline
 on:
   schedule:
     # 01:00 UTC every day
-    - cron: '4 0 * * *'
+    - cron: '15,45 * * * *'
   workflow_dispatch:
 
 jobs:
