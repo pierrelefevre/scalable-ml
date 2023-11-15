@@ -26,6 +26,9 @@ jobs:
     - name: Change work dir
       run: cd ./lab1/task2
 
+    - name: Test
+      run: ls ./
+
     - name: Run Wine Batch Inference Pipeline
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
