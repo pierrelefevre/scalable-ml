@@ -1,13 +1,16 @@
 from PIL import Image
+from datetime import datetime
+from sklearn.metrics import confusion_matrix
 
 import pandas as pd
 import dataframe_image as dfi
+import seaborn as sns
 
 import hopsworks
 import joblib
 import shutil
 import requests
-from datetime import datetime
+
 
 def load_model(project):
     mr = project.get_model_registry()
@@ -17,11 +20,25 @@ def load_model(project):
 
     return model
 
+
 def save_wine_image(quality, path):
     url = f"https://raw.githubusercontent.com/pierrelefevre/scalable-ml/main/lab1/task2/img/{quality}.png"
 
     img = Image.open(requests.get(url, stream=True).raw)            
     img.save(path)
+
+
+def upload_confusion_matrix(dataset_api, actuals, predictions):
+    all_classes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    results = confusion_matrix(actuals, predictions, labels=all_classes)
+
+    df_cm = pd.DataFrame(results, index=all_classes, columns=all_classes)
+
+    cm = sns.heatmap(df_cm, annot=True)
+    fig = cm.get_figure()
+    fig.savefig("./img/confusion_matrix.png")
+    dataset_api.upload("./img/confusion_matrix.png", "Resources/images", overwrite=True)
+
 
 def upload_prediction(dataset_api, pred_fg, predicted_quality, actual_quality):
     
@@ -38,8 +55,12 @@ def upload_prediction(dataset_api, pred_fg, predicted_quality, actual_quality):
     history_df = pred_fg.read()
     history_df = pd.concat([history_df, pred_df])
 
+    # fill with empty 
+
     # insert afterwards to ensure that we don't insert pred_df twice
     pred_fg.insert(pred_df, write_options={"wait_for_job" : False})
+
+    upload_confusion_matrix(dataset_api, history_df["label"], history_df["prediction"])
 
     # write image to hopsworks for visualization
     df_recent = history_df.tail(4)
@@ -51,6 +72,8 @@ def upload_prediction(dataset_api, pred_fg, predicted_quality, actual_quality):
 
     save_wine_image(actual_quality, "./img/actual_wine.png")
     dataset_api.upload("./img/actual_wine.png", "Resources/images", overwrite=True)
+
+
 
 def main():
     name = "winequality_typed_balanced"
