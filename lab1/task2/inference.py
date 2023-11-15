@@ -36,8 +36,8 @@ def upload_confusion_matrix(dataset_api, actuals, predictions):
 
     cm = sns.heatmap(df_cm, annot=True)
     fig = cm.get_figure()
-    fig.savefig("./img/confusion_matrix.png")
-    dataset_api.upload("./img/confusion_matrix.png", "Resources/images", overwrite=True)
+    fig.savefig("./img/confusion_matrix_wine.png")
+    dataset_api.upload("./img/confusion_matrix_wine.png", "Resources/images", overwrite=True)
 
 
 def upload_prediction(dataset_api, pred_fg, predicted_quality, actual_quality):
