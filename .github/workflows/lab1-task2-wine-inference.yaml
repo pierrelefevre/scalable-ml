@@ -23,13 +23,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r ./lab1/task2/requirements.txt
 
-    - name: Change work dir
-      run: cd ./lab1/task2
-
-    - name: Test
-      run: ls ./
-
     - name: Run Wine Batch Inference Pipeline
+      working-directory: lab1/task2
       env:
         HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
-      run: python ./lab1/task2/inference.py
+      run: python inference.py
