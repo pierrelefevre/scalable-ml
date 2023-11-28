@@ -164,3 +164,4 @@ api_key
 .env
 nohup.out
 common_voice_sv
+whisper-small-sv
