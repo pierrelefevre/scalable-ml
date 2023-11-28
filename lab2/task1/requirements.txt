@@ -1,0 +1,12 @@
+datasets
+transformers
+librosa
+evaluate
+jiwer
+gradio
+python-dotenv
+torch
+torchvision 
+torchaudio
+evaluate
+accelerate

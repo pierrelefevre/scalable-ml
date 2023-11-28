@@ -12,4 +12,11 @@ Predict type of flower based on petal and sepal measurements.
 ## [Task 2 - Wine](lab1/task2/README.md)
 Predict quality of wine based on some measurements.
 
-# Lab 2
+# [Lab 2](lab2/README.md)
+![whisper swedish fine tuning](lab2/assets/lab2.png)
+
+## [Task 1 - Fine tuning Whisper](lab2/task1/README.md)
+Fine tune the OpenAI Whisper model with the Mozilla swedish dataset.
+
+## [Task 2 - Improve scalability](lab2/task2/README.md)
+Improve the scalability of our Whisper fine tuning pipeline.
