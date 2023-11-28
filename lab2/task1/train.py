@@ -49,21 +49,36 @@ def compute_metrics(pred):
 
 
 # check gpu device
+print("Finding GPU device...")
 print(torch.cuda.get_device_name(0))
 
 print("Login to HuggingFace Hub...")
 huggingface_hub.login(token=os.getenv("HUGGINGFACE_TOKEN"), add_to_git_credential=True)
 
-print("Loading dataset...")
-dataset = load_data()
-print(dataset)
-
+print("Loading pretrained tools...")
 feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
 tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-small", language="sv", task="transcribe")
 processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="sv", task="transcribe")
 
-# Preprocess dataset
-common_voice = dataset.map(prepare_dataset, remove_columns=dataset.column_names["train"], num_proc=8)
+print("Loading dataset...")
+
+try:
+    common_voice = DatasetDict.load_from_disk("common_voice_sv")
+except:
+    common_voice = None
+if common_voice:
+    print("Dataset loaded from cache")
+else:
+    print("Dataset not found in cache, loading from source...")
+    dataset = load_data()
+    print(dataset)
+    
+    # Preprocess dataset
+    common_voice = dataset.map(prepare_dataset, remove_columns=dataset.column_names["train"], num_proc=8)
+
+    # Write common_voice to disk
+    common_voice.save_to_disk("common_voice_sv")
+    print("Dataset saved to cache")
 
 # Data collator
 @dataclass
@@ -104,7 +119,7 @@ model.config.suppress_tokens = []
 
 # Define training configuration
 training_args = Seq2SeqTrainingArguments(
-    output_dir="./whisper-small-hi",  # change to a repo name of your choice
+    output_dir="./whisper-small-sv",  # change to a repo name of your choice
     per_device_train_batch_size=16,
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     learning_rate=1e-5,
@@ -153,3 +168,4 @@ kwargs = {
     "tags": "hf-asr-leaderboard",
 }
 trainer.push_to_hub(**kwargs)
+trainer.save_model(f"{training_args.output_dir}-finetuned")

@@ -159,6 +159,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# Custom 
 api_key
 .env
 nohup.out
+common_voice_sv
