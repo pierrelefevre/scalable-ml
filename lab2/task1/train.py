@@ -7,7 +7,23 @@ from dotenv import load_dotenv
 import evaluate
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
+import multiprocessing
 load_dotenv()
+
+def detect_gpu():
+    if not torch.cuda.is_available():
+        print("No GPU device found")
+        exit()
+    
+    print(f"Found {torch.cuda.device_count()} GPU device(s)")
+    print(f"Using {torch.cuda.get_device_name(0)}")
+    
+def get_num_cpus():
+    return multiprocessing.cpu_count()
+
+def login_to_huggingface_hub():
+    print("Login to HuggingFace Hub...")
+    huggingface_hub.login(token=os.getenv("HUGGINGFACE_TOKEN"), add_to_git_credential=True)
     
 def load_data():
     common_voice = DatasetDict()
@@ -30,6 +46,26 @@ def prepare_dataset(batch):
     batch["labels"] = tokenizer(batch["sentence"]).input_ids
     return batch
 
+def get_or_process_common_voice():
+    try:
+        common_voice = DatasetDict.load_from_disk("common_voice_sv")
+    except:
+        common_voice = None
+    if common_voice:
+        print("Dataset loaded from cache")
+    else:
+        print("Dataset not found in cache, loading from source...")
+        dataset = load_data()
+        print(dataset)
+        
+        # Preprocess dataset
+        common_voice = dataset.map(prepare_dataset, remove_columns=dataset.column_names["train"], num_proc=8)
+
+        # Write common_voice to disk
+        common_voice.save_to_disk("common_voice_sv")
+        print("Dataset saved to cache")
+    return common_voice
+
 def compute_metrics(pred):
     pred_ids = pred.predictions
     label_ids = pred.label_ids
@@ -48,12 +84,9 @@ def compute_metrics(pred):
 # ============================================
 
 
-# check gpu device
-print("Finding GPU device...")
-print(torch.cuda.get_device_name(0))
+detect_gpu()
 
-print("Login to HuggingFace Hub...")
-huggingface_hub.login(token=os.getenv("HUGGINGFACE_TOKEN"), add_to_git_credential=True)
+login_to_huggingface_hub()
 
 print("Loading pretrained tools...")
 feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
@@ -61,24 +94,7 @@ tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-small", language="s
 processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="sv", task="transcribe")
 
 print("Loading dataset...")
-
-try:
-    common_voice = DatasetDict.load_from_disk("common_voice_sv")
-except:
-    common_voice = None
-if common_voice:
-    print("Dataset loaded from cache")
-else:
-    print("Dataset not found in cache, loading from source...")
-    dataset = load_data()
-    print(dataset)
-    
-    # Preprocess dataset
-    common_voice = dataset.map(prepare_dataset, remove_columns=dataset.column_names["train"], num_proc=8)
-
-    # Write common_voice to disk
-    common_voice.save_to_disk("common_voice_sv")
-    print("Dataset saved to cache")
+common_voice = get_or_process_common_voice()
 
 # Data collator
 @dataclass
@@ -120,19 +136,19 @@ model.config.suppress_tokens = []
 # Define training configuration
 training_args = Seq2SeqTrainingArguments(
     output_dir="./whisper-small-sv",  # change to a repo name of your choice
-    per_device_train_batch_size=16,
+    per_device_train_batch_size=64,
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     learning_rate=1e-5,
     warmup_steps=500,
-    max_steps=4000,
+    max_steps=8000,
     gradient_checkpointing=True,
     fp16=True,
     evaluation_strategy="steps",
     per_device_eval_batch_size=8,
     predict_with_generate=True,
     generation_max_length=225,
-    save_steps=1000,
-    eval_steps=1000,
+    save_steps=500,
+    eval_steps=500,
     logging_steps=25,
     report_to=["tensorboard"],
     load_best_model_at_end=True,
@@ -160,8 +176,8 @@ trainer.train()
 kwargs = {
     "dataset_tags": "mozilla-foundation/common_voice_11_0",
     "dataset": "Common Voice 11.0",  # a 'pretty' name for the training dataset
-    "dataset_args": "config: hi, split: test",
-    "language": "sv-SE",
+    "dataset_args": "config: sv, split: test",
+    "language": "swe",
     "model_name": "Whisper Swedish fine tuned",  # a 'pretty' name for our model
     "finetuned_from": "openai/whisper-small",
     "tasks": "automatic-speech-recognition",
