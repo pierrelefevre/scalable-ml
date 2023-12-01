@@ -1,0 +1,17 @@
+{
+    "SR P1": {
+        "url": "https://http-live.sr.se/p1-mp3-128"
+    },
+    "SR P2": {
+        "url": "https://http-live.sr.se/p2-mp3-128"
+    },
+    "SR P3": {
+        "url": "https://http-live.sr.se/p3-mp3-128"
+    },
+    "SR P4 Stockholm": {
+        "url": "https://http-live.sr.se/p4stockholm-mp3-128"
+    },
+    "Europa Plus": {
+        "url": "https://ep128.hostingradio.ru:8030/ep128"
+    }
+}

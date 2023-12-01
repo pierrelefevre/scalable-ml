@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <icon src="favicon.ico" />
+    <title>Radio with subtitles</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@100;400;700&family=Ubuntu&display=swap"
+        rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head>
+
+<body>
+    <div id="main">
+
+        <h1>Radio with subtitles</h1>
+        <caption><a href="https://www.youtube.com/watch?v=BzAdXyPYKQo">(on the internet)</a></caption>
+
+        <h2 style="margin-top: 3rem;">Choose a station</h2>
+        <div id="station-picker">
+            <button onclick="window.location.reload();">⏸&nbsp;&nbsp;Stop</button>
+        </div>
+
+
+        <div id="subtitles-container">
+            <div id="subtitles-fade"></div>
+            <textarea id="subtitles-textarea"></textarea>
+        </div>
+    </div>
+
+    <div style="display: none;">
+        <audio>
+            <source src="" id="source" type="audio/mp3">
+        </audio>
+    </div>
+
+    <style>
+        * {
+            font-family: 'Public Sans', sans-serif;
+            font-family: 'Ubuntu', sans-serif;
+            color: white;
+        }
+
+        h1 {
+            color: #00d992;
+        }
+
+        h2 {
+            color: #e7e7e8;
+        }
+
+        caption,
+        a {
+            color: #7d8385;
+        }
+
+
+        body {
+            background: #060f11;
+        }
+
+        #main {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        label,
+        button {
+            display: block;
+            padding: 10px;
+            border: 1px solid black;
+            background: #1a2225;
+            color: #e7e7e8;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            white-space: nowrap;
+            margin: 0;
+            font-size: 1rem;
+            box-sizing: border-box;
+            line-height: 1.5;
+        }
+
+        button {
+            background: #102522;
+        }
+
+        input[type="radio"]:checked+label {
+            background-color: #122322;
+            color: #fff;
+            border: 1px solid #00d992;
+        }
+
+        #station-picker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
+            margin-bottom: 3rem;
+        }
+
+        #subtitles-container {
+            width: 80vw;
+            height: 200px;
+            border: none;
+            padding: 1rem;
+            margin-top: 3rem;
+            background: black;
+            color: white;
+            border-radius: 5px;
+        }
+
+        #subtitles-fade {
+            position: absolute;
+            width: 80vw;
+            height: 200px;
+            background: linear-gradient(black, transparent);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #subtitles-textarea {
+            width: 80vw;
+            height: 200px;
+            border: none;
+            background-color: transparent;
+            resize: none;
+            overflow-y: scroll;
+            font-size: 1.8rem;
+            z-index: 5;
+            color: white;
+            line-height: 1.5;
+        }
+
+        #subtitles-textarea::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+
+
+        @media screen and (min-width: 768px) {
+            #station-picker {
+                flex-direction: row;
+            }
+
+
+            #subtitles-textarea {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+
+    <script>
+        let last_subtitle = '';
+
+        function populateStationPicker(stations) {
+            const stationPicker = document.querySelector('#station-picker');
+
+            Object.keys(stations).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.value = key;
+                input.name = 'station';
+                input.id = key;
+                stationPicker.appendChild(input);
+
+                const label = document.createElement('label');
+                label.innerHTML = key;
+                label.htmlFor = key;
+                stationPicker.appendChild(label);
+            });
+
+            stationPicker.addEventListener('change', (e) => {
+                const source = document.querySelector('#source');
+                const audio = document.querySelector('audio');
+
+                url = stations[e.target.value].url
+
+                source.src = url;
+                audio.load();
+                audio.play();
+            });
+        }
+
+        fetch('stations.json').then(response => {
+            return response.json();
+        }).then(stations => {
+            populateStationPicker(stations);
+        });
+
+        setInterval(() => {
+            const stationPicker = document.querySelector('#station-picker');
+            const station = stationPicker.querySelector(':checked');
+
+            if (!station) {
+                return;
+            }
+
+            fetch('/radio/' + encodeURIComponent(station.value)).then(response => {
+                return response.text();
+            }).then(subtitles => {
+                const subtitlesTextarea = document.querySelector('#subtitles-textarea');
+
+                if (last_subtitle === subtitles) {
+                    return;
+                }
+
+                last_subtitle = subtitles;
+
+                if (subtitlesTextarea.value.length == 0) {
+                    subtitlesTextarea.value = '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n';
+                }
+
+                setTimeout(() => {
+                    subtitles.split(' ').forEach((word, index) => {
+                        setTimeout(() => {
+                            subtitlesTextarea.value += word + ' ';
+                            subtitlesTextarea.scrollTop = subtitlesTextarea.scrollHeight;
+                        }, index * (200 * Math.random()));
+                    });
+                }, 1000);
+            });
+        }, 1000);
+    </script>
+</body>
+
+</html>

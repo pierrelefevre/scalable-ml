@@ -2,49 +2,86 @@ import os
 import huggingface_hub
 import torch
 from datasets import load_dataset, DatasetDict, Audio
-from transformers import WhisperFeatureExtractor, WhisperTokenizer, WhisperProcessor, WhisperForConditionalGeneration, Seq2SeqTrainingArguments, Seq2SeqTrainer
+from transformers import (
+    WhisperFeatureExtractor,
+    WhisperTokenizer,
+    WhisperProcessor,
+    WhisperForConditionalGeneration,
+    Seq2SeqTrainingArguments,
+    Seq2SeqTrainer,
+)
 from dotenv import load_dotenv
 import evaluate
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 import multiprocessing
+
 load_dotenv()
+
 
 def detect_gpu():
     if not torch.cuda.is_available():
         print("No GPU device found")
         exit()
-    
+
     print(f"Found {torch.cuda.device_count()} GPU device(s)")
     print(f"Using {torch.cuda.get_device_name(0)}")
-    
+
+
 def get_num_cpus():
     return multiprocessing.cpu_count()
 
+
 def login_to_huggingface_hub():
     print("Login to HuggingFace Hub...")
-    huggingface_hub.login(token=os.getenv("HUGGINGFACE_TOKEN"), add_to_git_credential=True)
-    
+    huggingface_hub.login(
+        token=os.getenv("HUGGINGFACE_TOKEN"), add_to_git_credential=True
+    )
+
+
 def load_data():
     common_voice = DatasetDict()
 
-    common_voice["train"] = load_dataset("mozilla-foundation/common_voice_11_0", "sv-SE", split="train+validation", token=True)
-    common_voice["test"] = load_dataset("mozilla-foundation/common_voice_11_0", "sv-SE", split="test", token=True)
-    common_voice = common_voice.remove_columns(["accent", "age", "client_id", "down_votes", "gender", "locale", "path", "segment", "up_votes"])
+    common_voice["train"] = load_dataset(
+        "mozilla-foundation/common_voice_11_0",
+        "sv-SE",
+        split="train+validation",
+        token=True,
+    )
+    common_voice["test"] = load_dataset(
+        "mozilla-foundation/common_voice_11_0", "sv-SE", split="test", token=True
+    )
+    common_voice = common_voice.remove_columns(
+        [
+            "accent",
+            "age",
+            "client_id",
+            "down_votes",
+            "gender",
+            "locale",
+            "path",
+            "segment",
+            "up_votes",
+        ]
+    )
     common_voice = common_voice.cast_column("audio", Audio(sampling_rate=16000))
 
     return common_voice
+
 
 def prepare_dataset(batch):
     # load and resample audio data from 48 to 16kHz
     audio = batch["audio"]
 
     # compute log-Mel input features from input audio array
-    batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
+    batch["input_features"] = feature_extractor(
+        audio["array"], sampling_rate=audio["sampling_rate"]
+    ).input_features[0]
 
     # encode target text to label ids
     batch["labels"] = tokenizer(batch["sentence"]).input_ids
     return batch
+
 
 def get_or_process_common_voice():
     try:
@@ -57,14 +94,17 @@ def get_or_process_common_voice():
         print("Dataset not found in cache, loading from source...")
         dataset = load_data()
         print(dataset)
-        
+
         # Preprocess dataset
-        common_voice = dataset.map(prepare_dataset, remove_columns=dataset.column_names["train"], num_proc=8)
+        common_voice = dataset.map(
+            prepare_dataset, remove_columns=dataset.column_names["train"], num_proc=8
+        )
 
         # Write common_voice to disk
         common_voice.save_to_disk("common_voice_sv")
         print("Dataset saved to cache")
     return common_voice
+
 
 def compute_metrics(pred):
     pred_ids = pred.predictions
@@ -81,6 +121,7 @@ def compute_metrics(pred):
 
     return {"wer": wer}
 
+
 # ============================================
 
 
@@ -90,22 +131,33 @@ login_to_huggingface_hub()
 
 print("Loading pretrained tools...")
 feature_extractor = WhisperFeatureExtractor.from_pretrained("openai/whisper-small")
-tokenizer = WhisperTokenizer.from_pretrained("openai/whisper-small", language="sv", task="transcribe")
-processor = WhisperProcessor.from_pretrained("openai/whisper-small", language="sv", task="transcribe")
+tokenizer = WhisperTokenizer.from_pretrained(
+    "openai/whisper-small", language="sv", task="transcribe"
+)
+processor = WhisperProcessor.from_pretrained(
+    "openai/whisper-small", language="sv", task="transcribe"
+)
 
 print("Loading dataset...")
 common_voice = get_or_process_common_voice()
+
 
 # Data collator
 @dataclass
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: Any
 
-    def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
+    def __call__(
+        self, features: List[Dict[str, Union[List[int], torch.Tensor]]]
+    ) -> Dict[str, torch.Tensor]:
         # split inputs and labels since they have to be of different lengths and need different padding methods
         # first treat the audio inputs by simply returning torch tensors
-        input_features = [{"input_features": feature["input_features"]} for feature in features]
-        batch = self.processor.feature_extractor.pad(input_features, return_tensors="pt")
+        input_features = [
+            {"input_features": feature["input_features"]} for feature in features
+        ]
+        batch = self.processor.feature_extractor.pad(
+            input_features, return_tensors="pt"
+        )
 
         # get the tokenized label sequences
         label_features = [{"input_ids": feature["labels"]} for feature in features]
@@ -113,7 +165,9 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
 
         # replace padding with -100 to ignore loss correctly
-        labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
+        labels = labels_batch["input_ids"].masked_fill(
+            labels_batch.attention_mask.ne(1), -100
+        )
 
         # if bos token is appended in previous tokenization step,
         # cut bos token here as it's append later anyways
@@ -123,6 +177,8 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
 
         return batch
+
+
 data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
 
 # Evaluate
@@ -140,7 +196,7 @@ training_args = Seq2SeqTrainingArguments(
     gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
     learning_rate=1e-5,
     warmup_steps=500,
-    max_steps=8000,
+    max_steps=4000,
     gradient_checkpointing=True,
     fp16=True,
     evaluation_strategy="steps",
