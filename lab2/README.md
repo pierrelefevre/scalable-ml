@@ -49,19 +49,12 @@ We had most troubles with the stream rate which was supplied as a random magic n
 
 We use chunks of 5 seconds to transcribe the audio, which works quite well apart from the words which get cut in half, but for this demo it was not a major concern.
 
-## Conclusion
-
-
 # Task 2 - Improve scalability
 ![man whispering at big server](./assets/task2.png)
 
 
 ## Task
 Improve the scalability of our Whisper fine tuning pipeline.
-
-## Training
-
-## Results
 
 ## Discussion
 ### Model-centric approach
@@ -87,6 +80,9 @@ We could ensure that the dataset is balanced across multiple accents, since some
 We discovered this issue when a person from Skåne was interviewed in a Swedish radio program. 
 
 
-### Troubles with XXX
-
 ## Conclusion
+We started with the small model, fine tuning it with the swedish dataset. We noticed a high WER, and tried to fine tune the medium model instead. This improved the WER, but we were not able to train the large v3 model.
+
+We then created a frontend, which was hosted on Hugging Face Spaces, and a radio streaming application, which was hosted on a VM with an A6000 GPU, where a user can get live subtitles for some popular radios using our fine-tuned model.
+
+We then discussed how we could improve the model, and the training pipeline. We concluded that we could improve the model by using hyperparameter tuning, regularization techniques, and a larger base model. We could also improve the model by using more data, augmenting the data, and ensuring that the dataset is balanced across multiple accents.

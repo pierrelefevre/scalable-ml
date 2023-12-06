@@ -15,8 +15,8 @@ Predict quality of wine based on some measurements.
 # [Lab 2](lab2/README.md)
 ![whisper swedish fine tuning](lab2/assets/lab2.png)
 
-## [Task 1 - Fine tuning Whisper](lab2/task1/README.md)
+## Task 1 - Fine tuning Whisper
 Fine tune the OpenAI Whisper model with the Mozilla swedish dataset.
 
-## [Task 2 - Improve scalability](lab2/task2/README.md)
+## Task 2 - Improve scalability
 Improve the scalability of our Whisper fine tuning pipeline.
