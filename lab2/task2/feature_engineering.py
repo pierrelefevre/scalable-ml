@@ -8,8 +8,6 @@ from transformers import (
     WhisperProcessor,
 )
 from dotenv import load_dotenv
-from dataclasses import dataclass
-from typing import Any, Dict, List, Union
 import multiprocessing
 
 load_dotenv()
@@ -79,7 +77,7 @@ def prepare_dataset(batch):
     return batch
 
 
-def get_or_process_common_voice():
+def process_common_voice():
     try:
         common_voice = DatasetDict.load_from_disk("common_voice_sv")
     except:
@@ -99,7 +97,6 @@ def get_or_process_common_voice():
         # Write common_voice to disk
         common_voice.save_to_disk("common_voice_sv")
         print("Dataset saved to cache")
-    return common_voice
 
 
 detect_gpu()
@@ -114,5 +111,5 @@ processor = WhisperProcessor.from_pretrained(
     "openai/whisper-medium", language="sv", task="transcribe"
 )
 
-print("Loading dataset...")
-common_voice = get_or_process_common_voice()
+print("Processing dataset...")
+process_common_voice()
