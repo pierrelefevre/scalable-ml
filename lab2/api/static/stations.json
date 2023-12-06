@@ -11,6 +11,9 @@
     "SR P4 Stockholm": {
         "url": "https://http-live.sr.se/p4stockholm-mp3-128"
     },
+    "BBC World": {
+        "url": "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service"
+    },
     "Europa Plus": {
         "url": "https://ep128.hostingradio.ru:8030/ep128"
     }

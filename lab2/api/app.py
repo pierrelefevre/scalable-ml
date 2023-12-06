@@ -9,6 +9,7 @@ import os
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 import threading
+import psutil
 
 app = Flask(__name__)
 CORS(app)
@@ -16,21 +17,53 @@ CORS(app)
 
 captions = {}
 stations = {
-    "SR P1": {"bitrate": 64000, "url": "https://http-live.sr.se/p1-mp3-64"},
-    "SR P2": {"bitrate": 64000, "url": "https://http-live.sr.se/p2-mp3-64"},
-    "SR P3": {"bitrate": 64000, "url": "https://http-live.sr.se/p3-mp3-64"},
+    "SR P1": {
+        "bitrate": 64000,
+        "url": "https://http-live.sr.se/p1-mp3-64",
+        "delay": 15,
+    },
+    "SR P2": {
+        "bitrate": 64000,
+        "url": "https://http-live.sr.se/p2-mp3-64",
+        "delay": 15,
+    },
+    "SR P3": {
+        "bitrate": 64000,
+        "url": "https://http-live.sr.se/p3-mp3-64",
+        "delay": 15,
+    },
     "SR P4 Stockholm": {
         "bitrate": 64000,
         "url": "https://http-live.sr.se/p4stockholm-mp3-64",
+        "delay": 15,
     },
     "Europa Plus": {
         "bitrate": 128000,
         "url": "https://ep128.hostingradio.ru:8030/ep128",
+        "delay": 6,
+    },
+    "BBC World": {
+        "bitrate": 56000,
+        "url": "https://stream.live.vc.bbcmedia.co.uk/bbc_world_service",
+        "delay": 2,
     },
 }
 
+
 for station in stations:
     captions[station] = ""
+
+
+def clean_ffmpeg_procs():
+    pids = []
+    for proc in psutil.process_iter(["pid", "name", "cmdline"]):
+        if "/usr/bin/ffmpeg" in proc.info["cmdline"]:
+            pids.append(proc.info["pid"])
+
+    for pid in pids:
+        psutil.Process(pid).terminate()
+
+    print(f"Killed {len(pids)} ffmpeg processes")
 
 
 def load_audio(file: str, sr: int):
@@ -89,12 +122,14 @@ def ffmpeg_worker(station):
 def stream_worker(station):
     global captions
 
+    delay = stations[station]["delay"]
+
     print(f"Starting stream worker for {station}")
-    pipe = pipeline(model="pierrelf/whisper-small-sv-big", device=0)
+    pipe = pipeline(model="pierrelf/whisper-medium-sv", device=0)
 
     while True:
         all_files = os.listdir(f"radios/{station}")
-        if len(all_files) < 15:
+        if len(all_files) < delay:
             time.sleep(1)
             continue
 
@@ -102,7 +137,7 @@ def stream_worker(station):
         all_files = [f for f in all_files if f.endswith(".mp3")]
         all_files = [f.split(".")[0] for f in all_files]
         all_files = sorted(all_files, key=lambda x: int(x))
-        max_num = int(all_files[-15])
+        max_num = int(all_files[-delay])
 
         # load audio
         audio = load_audio(
@@ -144,6 +179,7 @@ def index(path):
 
 if __name__ == "__main__":
     detect_gpu()
+    clean_ffmpeg_procs()
 
     for station in stations.keys():
         t = threading.Thread(target=ffmpeg_worker, args=(station,))
