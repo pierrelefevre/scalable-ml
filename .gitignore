@@ -165,4 +165,6 @@ api_key
 nohup.out
 common_voice_sv
 whisper-small-sv
+whisper-small-sv-big
+whisper-medium-sv
 *.mp3

@@ -12,7 +12,7 @@ from transformers import (
 )
 from dotenv import load_dotenv
 
-# import evaluate as ev
+import evaluate as ev
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 import multiprocessing
@@ -107,20 +107,20 @@ def get_or_process_common_voice():
     return common_voice
 
 
-# def compute_metrics(pred):
-#     pred_ids = pred.predictions
-#     label_ids = pred.label_ids
+def compute_metrics(pred):
+    pred_ids = pred.predictions
+    label_ids = pred.label_ids
 
-#     # replace -100 with the pad_token_id
-#     label_ids[label_ids == -100] = tokenizer.pad_token_id
+    # replace -100 with the pad_token_id
+    label_ids[label_ids == -100] = tokenizer.pad_token_id
 
-#     # we do not want to group tokens when computing the metrics
-#     pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
-#     label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+    # we do not want to group tokens when computing the metrics
+    pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
+    label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
 
-#     wer = 100 * metric.compute(predictions=pred_str, references=label_str)
+    wer = 100 * metric.compute(predictions=pred_str, references=label_str)
 
-#     return {"wer": wer}
+    return {"wer": wer}
 
 
 # ============================================
@@ -183,7 +183,7 @@ class DataCollatorSpeechSeq2SeqWithPadding:
 data_collator = DataCollatorSpeechSeq2SeqWithPadding(processor=processor)
 
 # Evaluate
-# metric = ev.load("wer")
+metric = ev.load("wer")
 
 # Load pretrained checkpoint
 model = WhisperForConditionalGeneration.from_pretrained("pierrelf/whisper-small-sv")
@@ -220,7 +220,7 @@ trainer = Seq2SeqTrainer(
     train_dataset=common_voice["train"],
     eval_dataset=common_voice["test"],
     data_collator=data_collator,
-    # compute_metrics=compute_metrics,
+    compute_metrics=compute_metrics,
     tokenizer=processor.feature_extractor,
 )
 

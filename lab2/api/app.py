@@ -90,7 +90,7 @@ def stream_worker(station):
     global captions
 
     print(f"Starting stream worker for {station}")
-    pipe = pipeline(model="pierrelf/whisper-small-sv", device=0)
+    pipe = pipeline(model="pierrelf/whisper-small-sv-big", device=0)
 
     while True:
         all_files = os.listdir(f"radios/{station}")
