@@ -3,7 +3,7 @@ name: Lab 1, Task 1, Iris Batch Pipeline
 on:
   schedule:
     # 01:00 UTC every day
-    - cron: '1 0 * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
