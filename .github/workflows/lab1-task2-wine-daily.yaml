@@ -1,9 +1,9 @@
 name: Lab 1, Task 2, Wine Daily Generator
 
 on:
-  schedule:
+  #schedule:
     # 02:00 UTC every day
-    - cron: '0 2 * * *'
+    #- cron: '0 2 * * *'
   workflow_dispatch:
 
 jobs:
