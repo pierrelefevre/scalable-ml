@@ -3,7 +3,7 @@ name: Lab 1, Task 1, Iris Daily Generator
 on:
   schedule:
     # 00:00 UTC every day
-    - cron: '0 0 * * *'
+    # - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
